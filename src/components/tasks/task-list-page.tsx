@@ -33,8 +33,8 @@ const variantShells = {
   'image-portfolio': 'bg-[linear-gradient(180deg,#07111f_0%,#13203a_100%)] text-white',
   'profile-creator': 'bg-[linear-gradient(180deg,#0a1120_0%,#101c34_100%)] text-white',
   'profile-business': 'bg-[linear-gradient(180deg,#f6fbff_0%,#ffffff_100%)]',
-  'classified-bulletin': 'bg-[linear-gradient(180deg,#edf3e4_0%,#ffffff_100%)]',
-  'classified-market': 'bg-[linear-gradient(180deg,#f4f6ef_0%,#ffffff_100%)]',
+  'classified-bulletin': 'bg-[#eef1f6] text-[#0f172a]',
+  'classified-market': 'bg-[#eef1f6] text-[#0f172a]',
   'sbm-curation': 'bg-[linear-gradient(180deg,#fff7ee_0%,#ffffff_100%)]',
   'sbm-library': 'bg-[linear-gradient(180deg,#f7f8fc_0%,#ffffff_100%)]',
 } as const
@@ -47,6 +47,11 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
   const taskConfig = getTaskConfig(task)
   const posts = await fetchTaskPosts(task, 30)
   const normalizedCategory = category ? normalizeCategory(category) : 'all'
+  const taskRoute = taskConfig?.route || '/classifieds'
+  const activeCategoryLabel =
+    normalizedCategory === 'all'
+      ? null
+      : CATEGORY_OPTIONS.find((c) => c.slug === normalizedCategory)?.name || normalizedCategory
   const intro = taskIntroCopy[task]
   const baseUrl = SITE_CONFIG.baseUrl.replace(/\/$/, '')
   const schemaItems = posts.slice(0, 10).map((post, index) => ({
@@ -77,13 +82,21 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
           input: 'border border-[#dbc6b6] bg-white text-[#2f1d16]',
           button: 'bg-[#2f1d16] text-[#fff4e4] hover:bg-[#452920]',
         }
-      : {
-          muted: 'text-slate-600',
-          panel: 'border border-slate-200 bg-white',
-          soft: 'border border-slate-200 bg-slate-50',
-          input: 'border border-slate-200 bg-white text-slate-950',
-          button: 'bg-slate-950 text-white hover:bg-slate-800',
-        }
+      : layoutKey === 'classified-market' || layoutKey === 'classified-bulletin'
+        ? {
+            muted: 'text-[#64748b]',
+            panel: 'rounded-xl border border-slate-200 bg-white shadow-sm',
+            soft: 'rounded-xl border border-slate-100 bg-white',
+            input: 'rounded-md border border-slate-200 bg-white text-[#0f172a]',
+            button: 'rounded-md bg-[#22c55e] font-semibold text-white hover:bg-[#16a34a]',
+          }
+        : {
+            muted: 'text-slate-600',
+            panel: 'border border-slate-200 bg-white',
+            soft: 'border border-slate-200 bg-slate-50',
+            input: 'border border-slate-200 bg-white text-slate-950',
+            button: 'bg-slate-950 text-white hover:bg-slate-800',
+          }
 
   return (
     <div className={`min-h-screen ${shellClass}`}>
@@ -200,19 +213,66 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
         ) : null}
 
         {layoutKey === 'classified-bulletin' || layoutKey === 'classified-market' ? (
-          <section className="mb-12 grid gap-4 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-            <div className={`rounded-[1.8rem] p-6 ${ui.panel}`}>
-              <p className={`text-xs uppercase tracking-[0.3em] ${ui.muted}`}>{taskConfig?.label || task}</p>
-              <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-foreground">Fast-moving notices, offers, and responses in a compact board format.</h1>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {['Quick to scan', 'Shorter response path', 'Clearer urgency cues'].map((item) => (
-                <div key={item} className={`rounded-[1.5rem] p-5 ${ui.soft}`}>
-                  <p className="text-sm font-semibold">{item}</p>
+          <section className="mb-10 grid gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
+            <div className={`p-6 sm:p-8 ${ui.panel}`}>
+              <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${ui.muted}`}>{taskConfig?.label || task}</p>
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-[#0f172a] sm:text-4xl">{taskConfig?.description || 'Browse classifieds'}</h1>
+              <p className={`mt-4 max-w-2xl text-sm leading-relaxed ${ui.muted}`}>
+                Choose a category below to filter listings. Your choice stays in sync with the site navigation.
+              </p>
+              <form method="GET" action={taskRoute} className="mt-6 space-y-3">
+                <div>
+                  <label htmlFor="classified-category" className={`text-xs font-semibold uppercase tracking-wide ${ui.muted}`}>
+                    Category
+                  </label>
+                  <select
+                    id="classified-category"
+                    name="category"
+                    defaultValue={normalizedCategory}
+                    className="mt-2 h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-[#0f172a] focus:border-[#22c55e] focus:outline-none focus:ring-1 focus:ring-[#22c55e]"
+                  >
+                    <option value="all">All categories</option>
+                    {CATEGORY_OPTIONS.map((item) => (
+                      <option key={item.slug} value={item.slug}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              ))}
+                <button
+                  type="submit"
+                  className="h-11 w-full rounded-md bg-[#22c55e] text-sm font-semibold text-white shadow-sm hover:bg-[#16a34a] sm:w-auto sm:px-8"
+                >
+                  Apply filter
+                </button>
+              </form>
             </div>
+            <aside className={`hidden h-min rounded-xl border border-slate-200 bg-[#0066ff] p-6 text-white shadow-md lg:block`}>
+              <p className="text-lg font-bold">Sponsored</p>
+              <p className="mt-2 text-sm text-white/90">Your brand can appear in this space.</p>
+              <Link
+                href="/contact?topic=advertise"
+                className="mt-5 block rounded-full bg-[#facc15] py-2.5 text-center text-sm font-bold text-[#0f172a] transition hover:bg-[#fde047]"
+              >
+                Advertise
+              </Link>
+            </aside>
           </section>
+        ) : null}
+
+        {task === 'classified' && activeCategoryLabel ? (
+          <div className="mb-8 flex flex-col gap-2 rounded-xl border border-[#22c55e]/30 bg-white px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Showing results for</p>
+              <p className="text-xl font-bold text-[#0f172a]">{activeCategoryLabel}</p>
+            </div>
+            <Link
+              href={taskRoute}
+              className="inline-flex shrink-0 items-center justify-center rounded-md border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-[#0f172a] hover:bg-slate-100"
+            >
+              Clear category filter
+            </Link>
+          </div>
         ) : null}
 
         {layoutKey === 'sbm-curation' || layoutKey === 'sbm-library' ? (

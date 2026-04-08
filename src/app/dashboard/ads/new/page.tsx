@@ -1,7 +1,7 @@
 ﻿"use client"
 
-import { useRef, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useRef, useState } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import {
@@ -49,7 +49,15 @@ const conditions = [
 
 export default function NewAdPage() {
   const router = useRouter()
-  const { user } = useAuth()
+  const pathname = usePathname()
+  const { user, isReady } = useAuth()
+
+  useEffect(() => {
+    if (!isReady) return
+    if (!user) {
+      router.replace(`/login?next=${encodeURIComponent(pathname)}`)
+    }
+  }, [isReady, user, router, pathname])
   const { toast } = useToast()
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -110,11 +118,6 @@ export default function NewAdPage() {
 
   const buildAd = (): ClassifiedAd | null => {
     if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to publish an ad.",
-      })
-      router.push("/login")
       return null
     }
 
@@ -186,6 +189,24 @@ export default function NewAdPage() {
     saveToStorage(storageKeys.ads, [ad, ...stored])
     await new Promise((resolve) => setTimeout(resolve, 800))
     router.push("/dashboard/ads")
+  }
+
+  if (!isReady || !user) {
+    return (
+      <div className="min-h-screen bg-[#eef1f6] text-[#0f172a]">
+        <NavbarShell />
+        <main className="mx-auto flex min-h-[45vh] max-w-lg flex-col items-center justify-center px-4 py-16 text-center">
+          <p className="text-sm font-medium">
+            {!isReady ? "Loading…" : "Sign in required"}
+          </p>
+          <p className="mt-2 text-sm text-[#64748b]">
+            {!isReady
+              ? "Checking your session."
+              : "Redirecting you to sign in to post an ad."}
+          </p>
+        </main>
+      </div>
+    )
   }
 
   return (

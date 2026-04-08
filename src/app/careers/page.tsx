@@ -24,7 +24,7 @@ export default function CareersPage() {
       title="Careers"
       description={`Help us build the future of community-driven publishing at ${SITE_CONFIG.name}.`}
       actions={
-        <Button asChild>
+        <Button className="bg-[#22c55e] hover:bg-[#16a34a]" asChild>
           <Link href="/contact">Apply Now</Link>
         </Button>
       }
@@ -32,30 +32,30 @@ export default function CareersPage() {
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-4">
           {roles.map((role) => (
-            <Card key={role.title} className="border-border bg-card">
+            <Card key={role.title} className="border-slate-200 bg-white shadow-none">
               <CardContent className="p-6">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="secondary">{role.level}</Badge>
                   <Badge variant="outline">{role.type}</Badge>
                 </div>
-                <h2 className="mt-3 text-lg font-semibold text-foreground">{role.title}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">{role.location}</p>
-                <Button variant="outline" className="mt-4" asChild>
+                <h2 className="mt-3 text-lg font-semibold text-[#0f172a]">{role.title}</h2>
+                <p className="mt-1 text-sm text-[#64748b]">{role.location}</p>
+                <Button variant="outline" className="mt-4 border-slate-200 bg-white text-[#0f172a] hover:bg-slate-50" asChild>
                   <Link href="/contact">View Role</Link>
                 </Button>
               </CardContent>
             </Card>
           ))}
         </div>
-        <Card className="border-border bg-card">
+        <Card className="border-slate-200 bg-white shadow-none">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-foreground">Why {SITE_CONFIG.name}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <h3 className="text-lg font-semibold text-[#0f172a]">Why {SITE_CONFIG.name}</h3>
+            <p className="mt-2 text-sm text-[#64748b]">
               We are building a product that helps people discover and share the best knowledge on the web.
             </p>
-            <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+            <div className="mt-4 space-y-2 text-sm text-[#64748b]">
               {benefits.map((benefit) => (
-                <div key={benefit} className="rounded-md border border-border bg-secondary/40 px-3 py-2">
+                <div key={benefit} className="rounded-md border border-slate-200 bg-slate-50/50 px-3 py-2">
                   {benefit}
                 </div>
               ))}
