@@ -1,6 +1,7 @@
+import { formatDistanceToNow } from 'date-fns'
 import { ContentImage } from '@/components/shared/content-image'
 import Link from 'next/link'
-import { ArrowUpRight, ExternalLink, FileText, Mail, MapPin, Tag } from 'lucide-react'
+import { ArrowUpRight, Clock, ExternalLink, FileText, Heart, Mail, MapPin, Tag } from 'lucide-react'
 import type { SitePost } from '@/lib/site-connector'
 import { CATEGORY_OPTIONS, normalizeCategory } from '@/lib/categories'
 import type { TaskKey } from '@/lib/site-config'
@@ -13,6 +14,7 @@ type ListingContent = {
   category?: string
   description?: string
   email?: string
+  price?: number | string
 }
 
 const stripHtml = (value?: string | null) =>
@@ -115,47 +117,73 @@ export function TaskPostCard({
   const isDirectorySurface = isDirectoryProduct && (variant === 'listing' || variant === 'classified' || variant === 'profile')
 
   if (isDirectorySurface) {
-    const cardTone = recipe.brandPack === 'market-utility'
-      ? {
-          frame: 'rounded-[1.75rem] border border-[#d7deca] bg-white shadow-[0_18px_44px_rgba(64,76,34,0.08)] hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(64,76,34,0.14)]',
-          badge: 'bg-[#1f2617] text-[#edf5dc]',
-          muted: 'text-[#5b664c]',
-          title: 'text-[#1f2617]',
-          cta: 'text-[#1f2617]',
-        }
-      : {
-          frame: 'rounded-[1.75rem] border border-slate-200 bg-white shadow-[0_18px_44px_rgba(15,23,42,0.08)] hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(15,23,42,0.14)]',
-          badge: 'bg-slate-950 text-white',
-          muted: 'text-slate-600',
-          title: 'text-slate-950',
-          cta: 'text-slate-950',
-        }
+    const cardTone = {
+      frame: 'rounded-lg border border-slate-200/90 bg-white shadow-[0_4px_20px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(15,23,42,0.1)]',
+      muted: 'text-[#64748b]',
+      title: 'text-[#0f172a]',
+      price: 'text-[#16a34a]',
+    }
+    const rawPrice = content.price
+    const priceLabel =
+      typeof rawPrice === 'number' && Number.isFinite(rawPrice)
+        ? `$${rawPrice.toLocaleString()}`
+        : typeof rawPrice === 'string' && rawPrice.trim()
+          ? rawPrice.trim().startsWith('$')
+            ? rawPrice.trim()
+            : `$${rawPrice.trim()}`
+          : null
+    const dateRef = post.publishedAt || post.updatedAt || post.createdAt
+    const timeAgo =
+      typeof dateRef === 'string'
+        ? formatDistanceToNow(new Date(dateRef), { addSuffix: true })
+        : null
+    const spotlight =
+      typeof post.id === 'string' && post.id.length > 0
+        ? post.id.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % 5 === 0
+        : false
 
     return (
-      <Link href={href} className={`group flex h-full flex-col overflow-hidden transition duration-300 ${cardTone.frame}`}>
-        <div className="relative aspect-[16/11] overflow-hidden bg-slate-100">
-          <ContentImage src={image} alt={altText} fill sizes={imageSizes} quality={75} className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" intrinsicWidth={960} intrinsicHeight={720} />
-          <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
-            <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${cardTone.badge}`}>
-              <Tag className="h-3.5 w-3.5" />
-              {category}
+      <Link href={href} className={`group flex h-full flex-col overflow-hidden ${cardTone.frame}`}>
+        <div className="relative aspect-[16/11] overflow-hidden rounded-t-lg bg-slate-100">
+          <ContentImage src={image} alt={altText} fill sizes={imageSizes} quality={75} className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" intrinsicWidth={960} intrinsicHeight={720} />
+          {spotlight ? (
+            <span className="absolute left-2 top-2 bg-[#16a34a] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
+              Spotlight
             </span>
-            <span className="rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-900">
-              {variant === 'classified' ? 'Open now' : 'Verified'}
-            </span>
-          </div>
+          ) : null}
+          <span
+            className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full border border-slate-200/80 bg-white/95 text-[#dc2626] shadow-sm"
+            aria-hidden
+          >
+            <Heart className="h-4 w-4" strokeWidth={2} />
+          </span>
         </div>
-        <div className="flex flex-1 flex-col p-5">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className={`line-clamp-2 text-xl font-semibold leading-snug ${cardTone.title}`}>{post.title}</h3>
-            <ArrowUpRight className={`h-5 w-5 shrink-0 ${cardTone.muted}`} />
+        <div className="flex flex-1 flex-col p-4">
+          <h3 className={`line-clamp-2 text-base font-bold leading-snug ${cardTone.title}`}>{post.title}</h3>
+          {priceLabel ? <p className={`mt-1 text-lg font-bold ${cardTone.price}`}>{priceLabel}</p> : null}
+          <div className={`mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs ${cardTone.muted}`}>
+            {content.location ? (
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                {content.location}
+              </span>
+            ) : null}
+            {timeAgo ? (
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5 shrink-0" />
+                {timeAgo}
+              </span>
+            ) : null}
           </div>
-          <p className={`mt-3 line-clamp-3 text-sm leading-7 ${cardTone.muted}`}>{getExcerpt(content.description || post.summary) || 'Explore this local listing.'}</p>
-          <div className="mt-5 flex flex-wrap gap-3 text-xs">
-            {content.location ? <span className={`inline-flex items-center gap-1 ${cardTone.muted}`}><MapPin className="h-3.5 w-3.5" />{content.location}</span> : null}
-            {content.email ? <span className={`inline-flex items-center gap-1 ${cardTone.muted}`}><Mail className="h-3.5 w-3.5" />{content.email}</span> : null}
+          {!priceLabel && (content.description || post.summary) ? (
+            <p className={`mt-2 line-clamp-2 text-sm leading-relaxed ${cardTone.muted}`}>
+              {getExcerpt(content.description || post.summary, 100) || 'View listing'}
+            </p>
+          ) : null}
+          <div className="mt-auto flex items-center justify-between pt-4">
+            <span className={`text-sm font-semibold ${cardTone.price}`}>{variant === 'classified' ? 'View ad' : 'View details'}</span>
+            <ArrowUpRight className={`h-4 w-4 shrink-0 ${cardTone.muted}`} />
           </div>
-          <div className={`mt-auto pt-5 text-sm font-semibold ${cardTone.cta}`}>{variant === 'classified' ? 'View offer' : 'View details'}</div>
         </div>
       </Link>
     )

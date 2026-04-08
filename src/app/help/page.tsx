@@ -17,7 +17,7 @@ export default function HelpPage() {
       title="Help Center"
       description="Find answers, guides, and best practices."
       actions={
-        <Button asChild>
+        <Button className="bg-[#22c55e] hover:bg-[#16a34a]" asChild>
           <Link href="/contact">Contact Support</Link>
         </Button>
       }
@@ -25,17 +25,17 @@ export default function HelpPage() {
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="grid gap-6 md:grid-cols-2">
           {topics.map((topic) => (
-            <Card key={topic.title} className="border-border bg-card transition-transform hover:-translate-y-1">
+            <Card key={topic.title} className="border-slate-200 bg-white shadow-none transition-transform hover:-translate-y-1">
               <CardContent className="p-6">
-                <h2 className="text-lg font-semibold text-foreground">{topic.title}</h2>
-                <p className="mt-2 text-sm text-muted-foreground">{topic.description}</p>
+                <h2 className="text-lg font-semibold text-[#0f172a]">{topic.title}</h2>
+                <p className="mt-2 text-sm text-[#64748b]">{topic.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
-        <Card className="border-border bg-card">
+        <Card className="border-slate-200 bg-white shadow-none">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-foreground">FAQ</h3>
+            <h3 className="text-lg font-semibold text-[#0f172a]">FAQ</h3>
             <Accordion type="single" collapsible className="mt-4">
               {mockFaqs.map((faq) => (
                 <AccordionItem key={faq.id} value={faq.id}>

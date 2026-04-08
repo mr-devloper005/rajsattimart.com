@@ -1,10 +1,10 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Search, Menu, X, User, FileText, Building2, LayoutGrid, Tag, Image as ImageIcon, ChevronRight, Sparkles, MapPin, Plus } from 'lucide-react'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { Search, User, FileText, Building2, LayoutGrid, Tag, Image as ImageIcon, ChevronRight, Sparkles, MapPin, Plus, Trees, UserPlus, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth-context'
 import { SITE_CONFIG, type TaskKey } from '@/lib/site-config'
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { siteContent } from '@/config/site.content'
 import { getFactoryState } from '@/design/factory/get-factory-state'
 import { NAVBAR_OVERRIDE_ENABLED, NavbarOverride } from '@/overrides/navbar'
+import { CATEGORY_OPTIONS, normalizeCategory } from '@/lib/categories'
 
 const NavbarAuthControls = dynamic(() => import('@/components/shared/navbar-auth-controls').then((mod) => mod.NavbarAuthControls), {
   ssr: false,
@@ -66,181 +67,141 @@ const variantClasses = {
   },
 } as const
 
-const directoryPalette = {
-  'directory-clean': {
-    shell: 'border-b border-slate-200 bg-white/94 text-slate-950 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur-xl',
-    logo: 'rounded-2xl border border-slate-200 bg-slate-50',
-    nav: 'text-slate-600 hover:text-slate-950',
-    search: 'border border-slate-200 bg-slate-50 text-slate-600',
-    cta: 'bg-slate-950 text-white hover:bg-slate-800',
-    post: 'border border-slate-200 bg-white text-slate-950 hover:bg-slate-50',
-    mobile: 'border-t border-slate-200 bg-white',
-  },
-  'market-utility': {
-    shell: 'border-b border-[#d7deca] bg-[#f4f6ef]/96 text-[#1f2617] shadow-[0_1px_0_rgba(64,76,34,0.06)] backdrop-blur-xl',
-    logo: 'rounded-xl border border-[#d7deca] bg-white',
-    nav: 'text-[#56604b] hover:text-[#1f2617]',
-    search: 'border border-[#d7deca] bg-white text-[#56604b]',
-    cta: 'bg-[#1f2617] text-[#edf5dc] hover:bg-[#2f3a24]',
-    post: 'border border-[#d7deca] bg-white text-[#1f2617] hover:bg-[#eef2e4]',
-    mobile: 'border-t border-[#d7deca] bg-[#f4f6ef]',
-  },
-} as const
-
 export function Navbar() {
   if (NAVBAR_OVERRIDE_ENABLED) {
     return <NavbarOverride />
   }
 
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { isAuthenticated } = useAuth()
   const { recipe } = getFactoryState()
 
   const navigation = useMemo(() => SITE_CONFIG.tasks.filter((task) => task.enabled && task.key !== 'profile'), [])
   const primaryNavigation = navigation.slice(0, 5)
-  const mobileNavigation = navigation.map((task) => ({
-    name: task.label,
-    href: task.route,
-    icon: taskIcons[task.key] || LayoutGrid,
-  }))
   const primaryTask = SITE_CONFIG.tasks.find((task) => task.key === recipe.primaryTask && task.enabled) || primaryNavigation[0]
   const isDirectoryProduct = recipe.homeLayout === 'listing-home' || recipe.homeLayout === 'classified-home'
 
   if (isDirectoryProduct) {
-    const palette = directoryPalette[(recipe.brandPack === 'market-utility' ? 'market-utility' : 'directory-clean') as keyof typeof directoryPalette]
+    const categoryNav = CATEGORY_OPTIONS.slice(0, 8)
+    const categoryQuery = searchParams.get('category')?.trim()
+    const activeCategory = categoryQuery ? normalizeCategory(categoryQuery) : ''
+    const classifiedRoute = primaryTask?.route || '/classifieds'
+    const postAdHref = primaryTask ? `/create/${primaryTask.key}` : '/register'
 
     return (
-      <>
-        <header className={cn('sticky top-0 z-50 w-full xl:hidden', palette.shell)}>
-          <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-            <div className="flex min-w-0 items-center gap-3">
-              <Link href="/" className="flex min-w-0 items-center gap-3">
-                <div className={cn('flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden p-1.5', palette.logo)}>
-                  <img src="/favicon.png?v=20260401" alt={`${SITE_CONFIG.name} logo`} width="44" height="44" className="h-full w-full object-contain" />
-                </div>
-                <div className="min-w-0">
-                  <span className="block truncate text-lg font-semibold">{SITE_CONFIG.name}</span>
-                  <span className="block truncate text-[10px] uppercase tracking-[0.22em] opacity-60">{siteContent.navbar.tagline}</span>
-                </div>
-              </Link>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-2">
-              {!isAuthenticated ? (
-                <Button size="sm" asChild className={cn('rounded-full', palette.cta)}>
-                  <Link href="/register">
-                    <Plus className="mr-1 h-4 w-4" />
-                    Add Listing
-                  </Link>
-                </Button>
-              ) : (
-                <NavbarAuthControls />
-              )}
-              <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
-            </div>
-          </nav>
-
-          {isMobileMenuOpen && (
-            <div className={palette.mobile}>
-              <div className="space-y-2 px-4 py-4">
-                <div className={cn('mb-3 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium', palette.search)}>
-                  <Search className="h-4 w-4" />
-                  Find businesses, spaces, and services
-                </div>
-                {mobileNavigation.map((item) => {
-                  const isActive = pathname.startsWith(item.href)
-                  return (
-                    <Link key={item.name} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className={cn('flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors', isActive ? 'bg-foreground text-background' : palette.post)}>
-                      <item.icon className="h-5 w-5" />
-                      {item.name}
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-        </header>
-
-        <aside className={cn('hidden xl:fixed xl:inset-y-0 xl:left-0 xl:z-40 xl:flex xl:w-80 xl:flex-col xl:border-r xl:px-6 xl:py-7', palette.shell)}>
-          <div className="flex h-full flex-col">
-            <Link href="/" className="flex items-center gap-3">
-              <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden p-1.5', palette.logo)}>
-                <img src="/favicon.png?v=20260401" alt={`${SITE_CONFIG.name} logo`} width="48" height="48" className="h-full w-full object-contain" />
-              </div>
-              <div className="min-w-0">
-                <span className="block truncate text-xl font-semibold">{SITE_CONFIG.name}</span>
-                <span className="block truncate text-[10px] uppercase tracking-[0.24em] opacity-60">{siteContent.navbar.tagline}</span>
-              </div>
+      <header data-mobile-nav="true" className="sticky top-0 z-50 w-full shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
+        <div className="bg-[#131a26] text-white">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:flex-nowrap sm:px-6 lg:gap-4 lg:px-8">
+            <Link href="/" className="flex shrink-0 items-center gap-2.5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[#22c55e] text-white shadow-sm">
+                <Trees className="h-6 w-6" aria-hidden />
+              </span>
+              <span className="max-w-[9rem] truncate text-base font-bold tracking-tight sm:max-w-none sm:text-lg">{SITE_CONFIG.name}</span>
             </Link>
 
-            <div className={cn('mt-7 flex items-center gap-3 rounded-[1.4rem] px-4 py-3 text-sm', palette.search)}>
-              <Search className="h-4 w-4 shrink-0" />
-              <div className="min-w-0">
-                <div className="truncate font-medium">Find local businesses</div>
-                <div className="truncate text-xs opacity-70">Search by service, category, or city</div>
+            <form action="/search" method="GET" className="order-3 flex w-full min-w-0 flex-[1_1_100%] items-stretch sm:order-none sm:flex-[1_1_auto] lg:max-w-2xl xl:max-w-3xl">
+              <input type="hidden" name="master" value="1" />
+              <div className="flex min-h-11 min-w-0 flex-1 overflow-hidden rounded-l-md border border-white/10 bg-white">
+                <label className="flex min-w-0 flex-1 items-center gap-2 border-r border-slate-200 px-3">
+                  <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+                  <input
+                    name="q"
+                    className="min-w-0 flex-1 bg-transparent py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                    placeholder={`Search ${SITE_CONFIG.name}`}
+                    autoComplete="off"
+                  />
+                </label>
+                <label className="hidden w-[38%] max-w-[11rem] shrink-0 items-center gap-2 border-r border-slate-200 px-3 sm:flex">
+                  <MapPin className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+                  <input
+                    name="location"
+                    className="w-full min-w-0 bg-transparent py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                    placeholder="Location"
+                    autoComplete="off"
+                  />
+                </label>
               </div>
-            </div>
+              <button
+                type="submit"
+                className="flex h-11 w-12 shrink-0 items-center justify-center rounded-r-md bg-[#22c55e] text-white transition hover:bg-[#16a34a]"
+                aria-label="Search"
+              >
+                <Search className="h-5 w-5" />
+              </button>
+            </form>
 
-            {primaryTask ? (
-              <Link href={primaryTask.route} className="mt-5 inline-flex items-center gap-2 self-start rounded-full border border-current/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] opacity-75">
-                <Sparkles className="h-3.5 w-3.5" />
-                {primaryTask.label}
-              </Link>
-            ) : null}
-
-            <nav className="mt-8 space-y-2">
-              {primaryNavigation.map((task) => {
-                const isActive = pathname.startsWith(task.route)
-                const Icon = taskIcons[task.key] || LayoutGrid
-                return (
-                  <Link
-                    key={task.key}
-                    href={task.route}
-                    className={cn(
-                      'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors',
-                      isActive ? 'bg-foreground text-background' : palette.post,
-                    )}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{task.label}</span>
-                  </Link>
-                )
-              })}
-            </nav>
-
-            <div className="mt-8 grid gap-3">
-              <div className={cn('rounded-[1.6rem] px-4 py-4 text-sm', palette.post)}>
-                <div className="flex items-center gap-2 font-semibold">
-                  <MapPin className="h-4 w-4" />
-                  Local discovery
-                </div>
-                <p className="mt-2 text-xs leading-6 opacity-75">Use business listings, classifieds, and support lanes without cramped top navigation.</p>
-              </div>
-            </div>
-
-            <div className="mt-auto space-y-3 pt-8">
+            <div className="ml-auto flex items-center gap-0.5 sm:gap-2">
               {isAuthenticated ? (
-                <NavbarAuthControls />
-              ) : (
-                <div className="space-y-3">
-                  <Button variant="ghost" size="sm" asChild className="w-full justify-center rounded-full px-4">
-                    <Link href="/login">Sign In</Link>
-                  </Button>
-                  <Button size="sm" asChild className={cn('w-full justify-center rounded-full', palette.cta)}>
-                    <Link href="/register">
-                      <Plus className="mr-1 h-4 w-4" />
-                      Add Listing
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    asChild
+                    className="hidden h-9 gap-1 rounded-md px-2 text-white hover:bg-white/10 hover:text-white sm:inline-flex"
+                  >
+                    <Link href={postAdHref} className="flex flex-col items-center gap-0.5 py-1 text-[10px] font-medium leading-none sm:flex-row sm:text-sm">
+                      <Plus className="h-4 w-4" />
+                      <span>Post an ad</span>
                     </Link>
                   </Button>
-                </div>
+                  <Button variant="ghost" size="sm" asChild className="inline-flex h-9 rounded-md bg-[#22c55e] px-3 text-sm font-semibold text-white hover:bg-[#16a34a] sm:hidden">
+                    <Link href={postAdHref}>Post</Link>
+                  </Button>
+                  <NavbarAuthControls />
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" size="sm" asChild className="hidden h-9 gap-1 rounded-md px-2 text-white hover:bg-white/10 hover:text-white md:inline-flex">
+                    <Link href="/register" className="flex flex-col items-center gap-0.5 py-1 text-[10px] font-medium leading-none sm:flex-row sm:text-sm">
+                      <UserPlus className="h-4 w-4" />
+                      <span>Sign up</span>
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" size="sm" asChild className="hidden h-9 gap-1 rounded-md px-2 text-white hover:bg-white/10 hover:text-white lg:inline-flex">
+                    <Link href="/login" className="flex flex-col items-center gap-0.5 py-1 text-[10px] font-medium leading-none sm:flex-row sm:text-sm">
+                      <LogIn className="h-4 w-4" />
+                      <span>Login</span>
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" size="sm" asChild className="inline-flex h-9 rounded-md bg-[#22c55e] px-3 text-sm font-semibold text-white hover:bg-[#16a34a] md:hidden">
+                    <Link href="/login">Login</Link>
+                  </Button>
+                </>
               )}
             </div>
           </div>
-        </aside>
-      </>
+        </div>
+
+        <nav className="border-t border-black/15 bg-[#e4e7ec]" aria-label="Browse categories">
+          <div className="mx-auto flex max-w-7xl items-center gap-0 overflow-x-auto px-2 py-0 sm:px-4 lg:px-8">
+            <Link
+              href={classifiedRoute}
+              className={cn(
+                'shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm font-medium text-[#334155] transition hover:bg-white/70 sm:py-3',
+                pathname.startsWith(classifiedRoute.replace(/\/$/, '')) && !categoryQuery && 'border-[#22c55e] bg-white text-[#0f172a]',
+              )}
+            >
+              All
+            </Link>
+            {categoryNav.map((cat) => {
+              const active = activeCategory === cat.slug
+              return (
+                <Link
+                  key={cat.slug}
+                  href={`${classifiedRoute}?category=${encodeURIComponent(cat.slug)}`}
+                  className={cn(
+                    'shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm font-medium text-[#334155] transition hover:bg-white/70 sm:py-3',
+                    active && 'border-[#22c55e] bg-white text-[#0f172a]',
+                  )}
+                >
+                  {cat.name}
+                </Link>
+              )
+            })}
+          </div>
+        </nav>
+      </header>
     )
   }
 
@@ -276,27 +237,8 @@ export function Navbar() {
             ) : (
               <NavbarAuthControls />
             )}
-            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
           </div>
         </nav>
-
-        {isMobileMenuOpen && (
-          <div className={style.mobile}>
-            <div className="space-y-2 px-4 py-4">
-              {mobileNavigation.map((item) => {
-                const isActive = pathname.startsWith(item.href)
-                return (
-                  <Link key={item.name} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className={cn('flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors', isActive ? style.active : style.idle)}>
-                    <item.icon className="h-5 w-5" />
-                    {item.name}
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-        )}
       </header>
 
       <aside className={cn('hidden xl:fixed xl:inset-y-0 xl:left-0 xl:z-40 xl:flex xl:w-80 xl:flex-col xl:overflow-y-auto xl:border-r xl:px-6 xl:py-7', style.shell)}>
