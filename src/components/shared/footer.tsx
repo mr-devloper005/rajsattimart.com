@@ -61,20 +61,78 @@ export function Footer() {
   const primaryTask = enabledTasks.find((task) => task.key === recipe.primaryTask) || enabledTasks[0]
 
   if (recipe.footer === 'minimal-footer') {
+    const topLocations = ['North', 'South', 'East', 'West', 'Central', 'Metro', 'Suburbs', 'Downtown']
     return (
-      <footer className="border-t border-[#d7deca] bg-[#f4f6ef] text-[#1f2617]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div>
-            <p className="text-lg font-semibold">{SITE_CONFIG.name}</p>
-            <p className="mt-1 text-sm text-[#56604b]">{SITE_CONFIG.description}</p>
+      <footer className="text-[#f8fafc]">
+        <div className="bg-[#f5f0e8] py-8 text-center">
+          <p className="text-lg font-bold text-[#1e293b]">Top Locations</p>
+          <div className="mx-auto mt-6 flex max-w-4xl flex-wrap items-center justify-center gap-x-2 gap-y-2 px-4 text-sm">
+            {topLocations.map((loc, i) => (
+              <span key={loc} className="inline-flex items-center gap-2">
+                {i > 0 ? <span className="text-[#cbd5e1]">|</span> : null}
+                <Link href="/search" className="text-[#0d9488] hover:underline">
+                  {loc}
+                </Link>
+              </span>
+            ))}
           </div>
-          <div className="flex flex-wrap gap-3">
-            {enabledTasks.slice(0, 5).map((task) => (
-              <Link key={task.key} href={task.route} className="rounded-lg border border-[#d7deca] bg-white px-3 py-2 text-sm font-medium text-[#1f2617] hover:bg-[#ebefdf]">
-                {task.label}
+        </div>
+
+        <div className="bg-[#3d3443] py-12">
+          <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-3 lg:px-8">
+            <div>
+              <p className="text-sm font-bold text-white">About Us</p>
+              <ul className="mt-4 space-y-2.5 text-sm text-white/90">
+                <li><Link href="/about" className="hover:underline">About {SITE_CONFIG.name}</Link></li>
+                <li><Link href="/careers" className="hover:underline">Careers</Link></li>
+                <li><Link href="/press" className="hover:underline">Press</Link></li>
+                <li><Link href="/blog" className="hover:underline">Blog</Link></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white">Help &amp; Contact</p>
+              <ul className="mt-4 space-y-2.5 text-sm text-white/90">
+                <li><Link href="/help" className="hover:underline">Help Centre</Link></li>
+                <li><Link href="/contact" className="hover:underline">Contact Us</Link></li>
+                <li><Link href="/privacy" className="hover:underline">Privacy</Link></li>
+                <li><Link href="/terms" className="hover:underline">Terms</Link></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white">Browse</p>
+              <ul className="mt-4 space-y-2.5 text-sm text-white/90">
+                {enabledTasks.map((task) => (
+                  <li key={task.key}>
+                    <Link href={task.route} className="hover:underline">{task.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-y border-white/10 bg-[#3d3443] py-8">
+          <p className="text-center text-sm font-semibold text-white">Join {SITE_CONFIG.name} community</p>
+          <div className="mx-auto mt-5 flex max-w-md flex-wrap justify-center gap-3">
+            {socialLinks.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+              >
+                <item.icon className="h-4 w-4" />
               </Link>
             ))}
           </div>
+        </div>
+
+        <div className="bg-[#2d2633] py-6 text-center text-xs leading-relaxed text-white/55">
+          <p>&copy; {new Date().getFullYear()} {SITE_CONFIG.name}. All rights reserved.</p>
+          <p className="mx-auto mt-3 max-w-3xl px-4">
+            {SITE_CONFIG.description}
+          </p>
         </div>
       </footer>
     )

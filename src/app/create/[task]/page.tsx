@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Plus, Save } from "lucide-react";
 import { NavbarShell } from "@/components/shared/navbar-shell";
+import { Footer } from "@/components/shared/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -165,11 +166,19 @@ const FORM_CONFIG: Record<TaskKey, { title: string; description: string; fields:
 };
 
 export default function CreateTaskPage() {
-  const { user } = useAuth();
+  const { user, isReady } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
   const params = useParams();
   const taskKey = params?.task as TaskKey;
+
+  useEffect(() => {
+    if (!isReady) return;
+    if (!user) {
+      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+    }
+  }, [isReady, user, router, pathname]);
 
   const taskConfig = useMemo(
     () => SITE_CONFIG.tasks.find((task) => task.key === taskKey && task.enabled),
@@ -182,17 +191,37 @@ export default function CreateTaskPage() {
 
   if (!taskConfig || !formConfig) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-[#eef1f6]">
         <NavbarShell />
         <main className="mx-auto max-w-3xl px-4 py-16 text-center">
-          <h1 className="text-2xl font-semibold text-foreground">Task not available</h1>
-          <p className="mt-2 text-muted-foreground">
+          <h1 className="text-2xl font-bold text-[#0f172a]">Task not available</h1>
+          <p className="mt-2 text-sm text-[#64748b]">
             This task is not enabled for the current site.
           </p>
-          <Button className="mt-6" asChild>
+          <Button className="mt-6 bg-[#22c55e] hover:bg-[#16a34a]" asChild>
             <Link href="/">Back home</Link>
           </Button>
         </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!isReady || !user) {
+    return (
+      <div className="min-h-screen bg-[#eef1f6] text-[#0f172a]">
+        <NavbarShell />
+        <main className="mx-auto flex min-h-[45vh] max-w-lg flex-col items-center justify-center px-4 py-16 text-center">
+          <p className="text-sm font-medium text-[#0f172a]">
+            {!isReady ? "Loading…" : "Sign in required"}
+          </p>
+          <p className="mt-2 text-sm text-[#64748b]">
+            {!isReady
+              ? "Checking your session."
+              : "Redirecting you to sign in so you can post an ad."}
+          </p>
+        </main>
+        <Footer />
       </div>
     );
   }
@@ -201,15 +230,6 @@ export default function CreateTaskPage() {
     setValues((prev) => ({ ...prev, [key]: value }));
 
   const handleSubmit = () => {
-    if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in before creating content.",
-      });
-      router.push("/login");
-      return;
-    }
-
     const missing = formConfig.fields.filter((field) => field.required && !values[field.key]);
     if (missing.length) {
       toast({
@@ -263,30 +283,30 @@ export default function CreateTaskPage() {
     });
 
     toast({
-      title: "Saved locally",
-      description: "This post is stored only in your browser.",
+      title: "Posted",
+      description: "Saved in your browser. Taking you to the home page.",
     });
 
-    router.push(`/local/${taskKey}/${post.slug}`);
+    router.push("/");
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#eef1f6] text-[#0f172a]">
       <NavbarShell />
-      <main className="mx-auto max-w-4xl px-4 py-12">
+      <main className="mx-auto max-w-4xl px-4 py-12 pb-16">
         <div className="mb-8 flex items-center gap-3">
-          <Button variant="ghost" size="icon" asChild>
+          <Button variant="ghost" size="icon" asChild className="text-[#0f172a] hover:bg-white">
             <Link href="/">
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">{formConfig.title}</h1>
-            <p className="text-sm text-muted-foreground">{formConfig.description}</p>
+            <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">{formConfig.title}</h1>
+            <p className="text-sm text-[#64748b]">{formConfig.description}</p>
           </div>
         </div>
 
-        <div className="rounded-3xl border border-border bg-card p-8 shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">{taskConfig.label}</Badge>
             <Badge variant="outline">Local-only</Badge>
@@ -376,11 +396,11 @@ export default function CreateTaskPage() {
           </div>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button onClick={handleSubmit}>
+            <Button onClick={handleSubmit} className="bg-[#22c55e] hover:bg-[#16a34a]">
               <Save className="mr-2 h-4 w-4" />
               Save locally
             </Button>
-            <Button variant="ghost" asChild>
+            <Button variant="outline" asChild className="border-slate-200 bg-white text-[#0f172a] hover:bg-slate-50">
               <Link href={taskConfig.route}>
                 View {taskConfig.label}
                 <Plus className="ml-2 h-4 w-4" />
@@ -389,6 +409,7 @@ export default function CreateTaskPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

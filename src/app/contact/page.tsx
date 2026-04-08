@@ -9,11 +9,11 @@ import { CONTACT_PAGE_OVERRIDE_ENABLED, ContactPageOverride } from '@/overrides/
 function getTone(kind: ReturnType<typeof getProductKind>) {
   if (kind === 'directory') {
     return {
-      shell: 'bg-[#f8fbff] text-slate-950',
-      panel: 'border border-slate-200 bg-white',
-      soft: 'border border-slate-200 bg-slate-50',
-      muted: 'text-slate-600',
-      action: 'bg-slate-950 text-white hover:bg-slate-800',
+      shell: 'bg-[#eef1f6] text-[#0f172a]',
+      panel: 'rounded-xl border border-slate-200 bg-white shadow-sm',
+      soft: 'rounded-xl border border-slate-200 bg-white shadow-sm',
+      muted: 'text-[#64748b]',
+      action: 'rounded-md bg-[#22c55e] text-white hover:bg-[#16a34a]',
     }
   }
   if (kind === 'editorial') {
@@ -43,10 +43,17 @@ function getTone(kind: ReturnType<typeof getProductKind>) {
   }
 }
 
-export default function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ topic?: string }>
+}) {
   if (CONTACT_PAGE_OVERRIDE_ENABLED) {
     return <ContactPageOverride />
   }
+
+  const resolved = searchParams ? await searchParams : {}
+  const isAdvertiseInquiry = resolved.topic === 'advertise'
 
   const { recipe } = getFactoryState()
   const productKind = getProductKind(recipe)
@@ -80,6 +87,14 @@ export default function ContactPage() {
     <div className={`min-h-screen ${tone.shell}`}>
       <NavbarShell />
       <main className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        {isAdvertiseInquiry && productKind === 'directory' ? (
+          <div className="mb-8 rounded-xl border border-[#22c55e]/40 bg-white px-5 py-4 shadow-sm">
+            <p className="text-sm font-semibold text-[#0f172a]">Advertising &amp; sponsored placements</p>
+            <p className="mt-1 text-sm text-[#64748b]">
+              Tell us about your brand, budget range, and where you would like to appear. We will follow up with availability and next steps.
+            </p>
+          </div>
+        ) : null}
         <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] opacity-70">Contact {SITE_CONFIG.name}</p>
@@ -96,14 +111,52 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className={`rounded-[2rem] p-7 ${tone.panel}`}>
-            <h2 className="text-2xl font-semibold">Send a message</h2>
+          <div className={`p-7 sm:p-8 ${tone.panel}`}>
+            <h2 className="text-2xl font-bold tracking-tight text-[#0f172a]">Send a message</h2>
             <form className="mt-6 grid gap-4">
-              <input className="h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm" placeholder="Your name" />
-              <input className="h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm" placeholder="Email address" />
-              <input className="h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm" placeholder="What do you need help with?" />
-              <textarea className="min-h-[180px] rounded-2xl border border-current/10 bg-transparent px-4 py-3 text-sm" placeholder="Share the full context so we can respond with the right next step." />
-              <button type="submit" className={`inline-flex h-12 items-center justify-center rounded-full px-6 text-sm font-semibold ${tone.action}`}>Send message</button>
+              <input
+                className={
+                  productKind === 'directory'
+                    ? 'h-11 rounded-md border border-slate-200 bg-white px-4 text-sm text-[#0f172a] placeholder:text-slate-400 focus:border-[#22c55e] focus:outline-none focus:ring-1 focus:ring-[#22c55e]'
+                    : 'h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm'
+                }
+                placeholder="Your name"
+              />
+              <input
+                className={
+                  productKind === 'directory'
+                    ? 'h-11 rounded-md border border-slate-200 bg-white px-4 text-sm text-[#0f172a] placeholder:text-slate-400 focus:border-[#22c55e] focus:outline-none focus:ring-1 focus:ring-[#22c55e]'
+                    : 'h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm'
+                }
+                placeholder="Email address"
+              />
+              <input
+                className={
+                  productKind === 'directory'
+                    ? 'h-11 rounded-md border border-slate-200 bg-white px-4 text-sm text-[#0f172a] placeholder:text-slate-400 focus:border-[#22c55e] focus:outline-none focus:ring-1 focus:ring-[#22c55e]'
+                    : 'h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm'
+                }
+                name="subject"
+                placeholder="What do you need help with?"
+                defaultValue={isAdvertiseInquiry ? 'Advertising / sponsored placement' : undefined}
+              />
+              <textarea
+                className={
+                  productKind === 'directory'
+                    ? 'min-h-[180px] rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-[#0f172a] placeholder:text-slate-400 focus:border-[#22c55e] focus:outline-none focus:ring-1 focus:ring-[#22c55e]'
+                    : 'min-h-[180px] rounded-2xl border border-current/10 bg-transparent px-4 py-3 text-sm'
+                }
+                name="message"
+                placeholder={
+                  isAdvertiseInquiry
+                    ? 'Describe your campaign goals, target audience, and preferred placement (e.g. homepage sidebar, category pages).'
+                    : 'Share the full context so we can respond with the right next step.'
+                }
+                defaultValue={isAdvertiseInquiry ? '' : undefined}
+              />
+              <button type="submit" className={`inline-flex h-11 items-center justify-center px-6 text-sm font-semibold shadow-sm ${tone.action}`}>
+                Send message
+              </button>
             </form>
           </div>
         </section>

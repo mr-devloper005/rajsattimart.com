@@ -15,7 +15,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   const { recipe, brandPack } = getFactoryState()
-  const hasLeftSidebarNav = true
+  const hasLeftSidebarNav =
+    recipe.homeLayout !== 'classified-home' && recipe.homeLayout !== 'listing-home'
 
   return (
     <html lang="en" suppressHydrationWarning>
