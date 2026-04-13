@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { Search, User, FileText, Building2, LayoutGrid, Tag, Image as ImageIcon, ChevronRight, Sparkles, MapPin, Plus, Trees, UserPlus, LogIn } from 'lucide-react'
+import { Search, User, FileText, Building2, LayoutGrid, Tag, Image as ImageIcon, ChevronRight, Sparkles, MapPin, Plus, UserPlus, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth-context'
 import { SITE_CONFIG, type TaskKey } from '@/lib/site-config'
@@ -94,8 +94,14 @@ export function Navbar() {
         <div className="bg-[#131a26] text-white">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:flex-nowrap sm:px-6 lg:gap-4 lg:px-8">
             <Link href="/" className="flex shrink-0 items-center gap-2.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[#22c55e] text-white shadow-sm">
-                <Trees className="h-6 w-6" aria-hidden />
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-white/20 bg-white p-1 shadow-sm">
+                <img
+                  src="/favicon.png?v=20260414"
+                  alt={`${SITE_CONFIG.name} logo`}
+                  width={40}
+                  height={40}
+                  className="h-full w-full object-contain"
+                />
               </span>
               <span className="max-w-[9rem] truncate text-base font-bold tracking-tight sm:max-w-none sm:text-lg">{SITE_CONFIG.name}</span>
             </Link>
@@ -217,7 +223,7 @@ export function Navbar() {
           <div className="flex min-w-0 items-center gap-3">
             <Link href="/" className="flex min-w-0 items-center gap-3">
               <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden p-1.5', style.logo)}>
-                <img src="/favicon.png?v=20260401" alt={`${SITE_CONFIG.name} logo`} width="48" height="48" className="h-full w-full object-contain" />
+                <img src="/favicon.png?v=20260414" alt={`${SITE_CONFIG.name} logo`} width="48" height="48" className="h-full w-full object-contain" />
               </div>
               <div className="min-w-0">
                 <span className="block truncate text-lg font-semibold">{SITE_CONFIG.name}</span>
@@ -245,7 +251,7 @@ export function Navbar() {
         <div className="flex h-full flex-col">
           <Link href="/" className="flex items-center gap-3">
             <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden p-1.5', style.logo)}>
-              <img src="/favicon.png?v=20260401" alt={`${SITE_CONFIG.name} logo`} width="48" height="48" className="h-full w-full object-contain" />
+              <img src="/favicon.png?v=20260414" alt={`${SITE_CONFIG.name} logo`} width="48" height="48" className="h-full w-full object-contain" />
             </div>
             <div className="min-w-0">
               <span className="block truncate text-xl font-semibold">{SITE_CONFIG.name}</span>
