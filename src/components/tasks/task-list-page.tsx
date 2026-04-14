@@ -214,11 +214,16 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
 
         {layoutKey === 'classified-bulletin' || layoutKey === 'classified-market' ? (
           <section className="mb-10 grid gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
-            <div className={`p-6 sm:p-8 ${ui.panel}`}>
-              <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${ui.muted}`}>{taskConfig?.label || task}</p>
-              <h1 className="mt-3 text-3xl font-bold tracking-tight text-[#0f172a] sm:text-4xl">{taskConfig?.description || 'Browse classifieds'}</h1>
+            <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white via-slate-50/80 to-[#fff7ed]/40 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] sm:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#ea580c]">{taskConfig?.label || task}</p>
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-[#0f172a] sm:text-4xl">
+                {taskConfig?.description || 'Browse classifieds'}
+              </h1>
+              <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-[#64748b]">
+                Shop more · Pay less · Live better
+              </p>
               <p className={`mt-4 max-w-2xl text-sm leading-relaxed ${ui.muted}`}>
-                Choose a category below to filter listings. Your choice stays in sync with the site navigation.
+                Fresh local deals, pre-loved finds, and neighbourhood services — filter by category to jump straight to what you need.
               </p>
               <form method="GET" action={taskRoute} className="mt-6 space-y-3">
                 <div>
@@ -229,7 +234,7 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
                     id="classified-category"
                     name="category"
                     defaultValue={normalizedCategory}
-                    className="mt-2 h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-[#0f172a] focus:border-[#22c55e] focus:outline-none focus:ring-1 focus:ring-[#22c55e]"
+                    className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-[#0f172a] focus:border-[#ea580c] focus:outline-none focus:ring-2 focus:ring-[#ea580c]/25"
                   >
                     <option value="all">All categories</option>
                     {CATEGORY_OPTIONS.map((item) => (
@@ -241,27 +246,27 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
                 </div>
                 <button
                   type="submit"
-                  className="h-11 w-full rounded-md bg-[#22c55e] text-sm font-semibold text-white shadow-sm hover:bg-[#16a34a] sm:w-auto sm:px-8"
+                  className="h-11 w-full rounded-lg bg-[#ea580c] text-sm font-semibold text-white shadow-sm hover:bg-[#c2410c] sm:w-auto sm:px-8"
                 >
                   Apply filter
                 </button>
               </form>
             </div>
-            <aside className={`hidden h-min rounded-xl border border-slate-200 bg-[#0066ff] p-6 text-white shadow-md lg:block`}>
-              <p className="text-lg font-bold">Sponsored</p>
-              <p className="mt-2 text-sm text-white/90">Your brand can appear in this space.</p>
+            <aside className="hidden h-min rounded-2xl border border-[#c2410c]/30 bg-gradient-to-b from-[#0f172a] to-[#1e3a5c] p-6 text-white shadow-lg lg:block">
+              <p className="text-lg font-bold text-[#fb923c]">Raj Satti Mart</p>
+              <p className="mt-2 text-sm text-slate-200">Promote your listing or brand to shoppers already in buying mode.</p>
               <Link
                 href="/contact?topic=advertise"
-                className="mt-5 block rounded-full bg-[#facc15] py-2.5 text-center text-sm font-bold text-[#0f172a] transition hover:bg-[#fde047]"
+                className="mt-5 block rounded-full bg-[#fb923c] py-2.5 text-center text-sm font-bold text-[#0f172a] transition hover:bg-[#fdba74]"
               >
-                Advertise
+                Advertise with us
               </Link>
             </aside>
           </section>
         ) : null}
 
         {task === 'classified' && activeCategoryLabel ? (
-          <div className="mb-8 flex flex-col gap-2 rounded-xl border border-[#22c55e]/30 bg-white px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-8 flex flex-col gap-2 rounded-xl border border-[#ea580c]/25 bg-white px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">Showing results for</p>
               <p className="text-xl font-bold text-[#0f172a]">{activeCategoryLabel}</p>

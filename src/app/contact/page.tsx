@@ -1,47 +1,27 @@
-import { Building2, FileText, Image as ImageIcon, Mail, MapPin, Phone, Sparkles, Bookmark } from 'lucide-react'
-import { NavbarShell } from '@/components/shared/navbar-shell'
-import { Footer } from '@/components/shared/footer'
-import { SITE_CONFIG } from '@/lib/site-config'
-import { getFactoryState } from '@/design/factory/get-factory-state'
-import { getProductKind } from '@/design/factory/get-product-kind'
+import Link from 'next/link'
+import { Building2, Mail, MapPin, Phone, Store } from 'lucide-react'
+import { BrandPageFrame } from '@/components/marketing/brand-page-frame'
+import { Button } from '@/components/ui/button'
 import { CONTACT_PAGE_OVERRIDE_ENABLED, ContactPageOverride } from '@/overrides/contact-page'
+import { SITE_CONFIG } from '@/lib/site-config'
 
-function getTone(kind: ReturnType<typeof getProductKind>) {
-  if (kind === 'directory') {
-    return {
-      shell: 'bg-[#eef1f6] text-[#0f172a]',
-      panel: 'rounded-xl border border-slate-200 bg-white shadow-sm',
-      soft: 'rounded-xl border border-slate-200 bg-white shadow-sm',
-      muted: 'text-[#64748b]',
-      action: 'rounded-md bg-[#22c55e] text-white hover:bg-[#16a34a]',
-    }
-  }
-  if (kind === 'editorial') {
-    return {
-      shell: 'bg-[#fbf6ee] text-[#241711]',
-      panel: 'border border-[#dcc8b7] bg-[#fffdfa]',
-      soft: 'border border-[#e6d6c8] bg-[#fff4e8]',
-      muted: 'text-[#6e5547]',
-      action: 'bg-[#241711] text-[#fff1e2] hover:bg-[#3a241b]',
-    }
-  }
-  if (kind === 'visual') {
-    return {
-      shell: 'bg-[#07101f] text-white',
-      panel: 'border border-white/10 bg-white/6',
-      soft: 'border border-white/10 bg-white/5',
-      muted: 'text-slate-300',
-      action: 'bg-[#8df0c8] text-[#07111f] hover:bg-[#77dfb8]',
-    }
-  }
-  return {
-    shell: 'bg-[#f7f1ea] text-[#261811]',
-    panel: 'border border-[#ddcdbd] bg-[#fffaf4]',
-    soft: 'border border-[#e8dbce] bg-[#f3e8db]',
-    muted: 'text-[#71574a]',
-    action: 'bg-[#5b2b3b] text-[#fff0f5] hover:bg-[#74364b]',
-  }
-}
+const lanes = [
+  {
+    icon: Store,
+    title: 'Store & classifieds help',
+    body: 'Questions about posting ads, editing photos, or marking items sold? We route you to the listings team first.',
+  },
+  {
+    icon: Building2,
+    title: 'Partnerships & bulk sellers',
+    body: 'Retailers and service providers can coordinate featured placements, seasonal campaigns, and verification.',
+  },
+  {
+    icon: MapPin,
+    title: 'Local coverage',
+    body: 'Request a new category focus or report inaccurate area tags so shoppers see the right neighbourhood results.',
+  },
+]
 
 export default async function ContactPage({
   searchParams,
@@ -55,113 +35,95 @@ export default async function ContactPage({
   const resolved = searchParams ? await searchParams : {}
   const isAdvertiseInquiry = resolved.topic === 'advertise'
 
-  const { recipe } = getFactoryState()
-  const productKind = getProductKind(recipe)
-  const tone = getTone(productKind)
-  const lanes =
-    productKind === 'directory'
-      ? [
-          { icon: Building2, title: 'Business onboarding', body: 'Add listings, verify operational details, and bring your business surface live quickly.' },
-          { icon: Phone, title: 'Partnership support', body: 'Talk through bulk publishing, local growth, and operational setup questions.' },
-          { icon: MapPin, title: 'Coverage requests', body: 'Need a new geography or category lane? We can shape the directory around it.' },
-        ]
-      : productKind === 'editorial'
-        ? [
-            { icon: FileText, title: 'Editorial submissions', body: 'Pitch essays, columns, and long-form ideas that fit the publication.' },
-            { icon: Mail, title: 'Newsletter partnerships', body: 'Coordinate sponsorships, collaborations, and issue-level campaigns.' },
-            { icon: Sparkles, title: 'Contributor support', body: 'Get help with voice, formatting, and publication workflow questions.' },
-          ]
-        : productKind === 'visual'
-          ? [
-              { icon: ImageIcon, title: 'Creator collaborations', body: 'Discuss gallery launches, creator features, and visual campaigns.' },
-              { icon: Sparkles, title: 'Licensing and use', body: 'Reach out about usage rights, commercial requests, and visual partnerships.' },
-              { icon: Mail, title: 'Media kits', body: 'Request creator decks, editorial support, or visual feature placement.' },
-            ]
-          : [
-              { icon: Bookmark, title: 'Collection submissions', body: 'Suggest resources, boards, and links that deserve a place in the library.' },
-              { icon: Mail, title: 'Resource partnerships', body: 'Coordinate curation projects, reference pages, and link programs.' },
-              { icon: Sparkles, title: 'Curator support', body: 'Need help organizing shelves, collections, or profile-connected boards?' },
-            ]
-
   return (
-    <div className={`min-h-screen ${tone.shell}`}>
-      <NavbarShell />
-      <main className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        {isAdvertiseInquiry && productKind === 'directory' ? (
-          <div className="mb-8 rounded-xl border border-[#22c55e]/40 bg-white px-5 py-4 shadow-sm">
-            <p className="text-sm font-semibold text-[#0f172a]">Advertising &amp; sponsored placements</p>
-            <p className="mt-1 text-sm text-[#64748b]">
-              Tell us about your brand, budget range, and where you would like to appear. We will follow up with availability and next steps.
-            </p>
-          </div>
-        ) : null}
-        <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] opacity-70">Contact {SITE_CONFIG.name}</p>
-            <h1 className="mt-4 text-5xl font-semibold tracking-[-0.05em]">A support page that matches the product, not a generic contact form.</h1>
-            <p className={`mt-5 max-w-2xl text-sm leading-8 ${tone.muted}`}>Tell us what you are trying to publish, fix, or launch. We will route it through the right lane instead of forcing every request into the same support bucket.</p>
-            <div className="mt-8 space-y-4">
-              {lanes.map((lane) => (
-                <div key={lane.title} className={`rounded-[1.6rem] p-5 ${tone.soft}`}>
-                  <lane.icon className="h-5 w-5" />
-                  <h2 className="mt-3 text-xl font-semibold">{lane.title}</h2>
-                  <p className={`mt-2 text-sm leading-7 ${tone.muted}`}>{lane.body}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+    <BrandPageFrame
+      eyebrow={`Contact ${SITE_CONFIG.name}`}
+      title={<span className="text-white">We are here to help</span>}
+      description="Share a little context and we will point your note to the right crew — listings support, partnerships, or press."
+      actions={
+        <div className="flex flex-wrap gap-2 text-xs text-slate-200">
+          <Phone className="h-4 w-4 text-[#fb923c]" aria-hidden />
+          <span>Typical reply time: one business day</span>
+        </div>
+      }
+    >
+      {isAdvertiseInquiry ? (
+        <div className="mb-8 rounded-xl border border-[#fb923c]/40 bg-[#fff7ed] px-5 py-4">
+          <p className="text-sm font-semibold text-[#0f172a]">Advertising &amp; sponsored placements</p>
+          <p className="mt-1 text-sm text-[#64748b]">
+            Describe your campaign goals, audience, and preferred surfaces (homepage, categories, or newsletter). Our partnerships
+            desk will reply with availability.
+          </p>
+        </div>
+      ) : null}
 
-          <div className={`p-7 sm:p-8 ${tone.panel}`}>
-            <h2 className="text-2xl font-bold tracking-tight text-[#0f172a]">Send a message</h2>
-            <form className="mt-6 grid gap-4">
-              <input
-                className={
-                  productKind === 'directory'
-                    ? 'h-11 rounded-md border border-slate-200 bg-white px-4 text-sm text-[#0f172a] placeholder:text-slate-400 focus:border-[#22c55e] focus:outline-none focus:ring-1 focus:ring-[#22c55e]'
-                    : 'h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm'
-                }
-                placeholder="Your name"
-              />
-              <input
-                className={
-                  productKind === 'directory'
-                    ? 'h-11 rounded-md border border-slate-200 bg-white px-4 text-sm text-[#0f172a] placeholder:text-slate-400 focus:border-[#22c55e] focus:outline-none focus:ring-1 focus:ring-[#22c55e]'
-                    : 'h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm'
-                }
-                placeholder="Email address"
-              />
-              <input
-                className={
-                  productKind === 'directory'
-                    ? 'h-11 rounded-md border border-slate-200 bg-white px-4 text-sm text-[#0f172a] placeholder:text-slate-400 focus:border-[#22c55e] focus:outline-none focus:ring-1 focus:ring-[#22c55e]'
-                    : 'h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm'
-                }
-                name="subject"
-                placeholder="What do you need help with?"
-                defaultValue={isAdvertiseInquiry ? 'Advertising / sponsored placement' : undefined}
-              />
-              <textarea
-                className={
-                  productKind === 'directory'
-                    ? 'min-h-[180px] rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-[#0f172a] placeholder:text-slate-400 focus:border-[#22c55e] focus:outline-none focus:ring-1 focus:ring-[#22c55e]'
-                    : 'min-h-[180px] rounded-2xl border border-current/10 bg-transparent px-4 py-3 text-sm'
-                }
-                name="message"
-                placeholder={
-                  isAdvertiseInquiry
-                    ? 'Describe your campaign goals, target audience, and preferred placement (e.g. homepage sidebar, category pages).'
-                    : 'Share the full context so we can respond with the right next step.'
-                }
-                defaultValue={isAdvertiseInquiry ? '' : undefined}
-              />
-              <button type="submit" className={`inline-flex h-11 items-center justify-center px-6 text-sm font-semibold shadow-sm ${tone.action}`}>
+      <div className="grid gap-10 lg:grid-cols-[1fr_1.05fr] lg:items-start">
+        <div className="space-y-5">
+          <p className="text-sm leading-relaxed text-[#64748b]">
+            This is not a black-hole inbox. Tell us whether you are buying, selling, or partnering — we read every message and
+            follow up with clear next steps.
+          </p>
+          <ul className="space-y-4">
+            {lanes.map((lane) => (
+              <li key={lane.title} className="flex gap-4 rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#0f172a] text-[#fb923c]">
+                  <lane.icon className="h-5 w-5" aria-hidden />
+                </div>
+                <div>
+                  <h2 className="font-semibold text-[#0f172a]">{lane.title}</h2>
+                  <p className="mt-1 text-sm leading-relaxed text-[#64748b]">{lane.body}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p className="flex items-center gap-2 text-sm text-[#64748b]">
+            <Mail className="h-4 w-4 text-[#ea580c]" aria-hidden />
+            Prefer email? Use the form — it delivers straight to the same queue.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8">
+          <h2 className="text-xl font-bold text-[#0f172a]">Send a message</h2>
+          <form className="mt-6 grid gap-4">
+            <input
+              className="h-11 rounded-lg border border-slate-200 bg-white px-4 text-sm text-[#0f172a] placeholder:text-slate-400 focus:border-[#ea580c] focus:outline-none focus:ring-2 focus:ring-[#ea580c]/20"
+              placeholder="Your name"
+              name="name"
+              autoComplete="name"
+            />
+            <input
+              className="h-11 rounded-lg border border-slate-200 bg-white px-4 text-sm text-[#0f172a] placeholder:text-slate-400 focus:border-[#ea580c] focus:outline-none focus:ring-2 focus:ring-[#ea580c]/20"
+              placeholder="Email address"
+              name="email"
+              type="email"
+              autoComplete="email"
+            />
+            <input
+              className="h-11 rounded-lg border border-slate-200 bg-white px-4 text-sm text-[#0f172a] placeholder:text-slate-400 focus:border-[#ea580c] focus:outline-none focus:ring-2 focus:ring-[#ea580c]/20"
+              name="subject"
+              placeholder="What do you need help with?"
+              defaultValue={isAdvertiseInquiry ? 'Advertising / sponsored placement' : undefined}
+            />
+            <textarea
+              className="min-h-[168px] rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-[#0f172a] placeholder:text-slate-400 focus:border-[#ea580c] focus:outline-none focus:ring-2 focus:ring-[#ea580c]/20"
+              name="message"
+              placeholder={
+                isAdvertiseInquiry
+                  ? 'Campaign goals, budget range, timing, and any creative assets we should review.'
+                  : 'Include listing links, order context, or screenshots so we can move faster.'
+              }
+            />
+            <div className="flex flex-wrap gap-3">
+              <Button type="submit" className="bg-[#ea580c] font-semibold text-white hover:bg-[#c2410c]">
                 Send message
-              </button>
-            </form>
-          </div>
-        </section>
-      </main>
-      <Footer />
-    </div>
+              </Button>
+              <Button variant="outline" className="border-slate-200" asChild>
+                <Link href="/help">Browse help centre</Link>
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </BrandPageFrame>
   )
 }
