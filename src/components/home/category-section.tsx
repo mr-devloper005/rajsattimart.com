@@ -2,34 +2,17 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import {
-  Monitor,
-  Palette,
-  Briefcase,
-  Heart,
-  UtensilsCrossed,
-  Wrench,
-  Smartphone,
-  Home,
-  Bike,
-  Building
-} from 'lucide-react'
-import { mockCategories } from '@/data/mock-data'
+import { ContentImage } from '@/components/shared/content-image'
 
-const iconMap: Record<string, React.ElementType> = {
-  Monitor,
-  Palette,
-  Briefcase,
-  Heart,
-  UtensilsCrossed,
-  Wrench,
-  Smartphone,
-  Home,
-  Bike,
-  Building
+export type CategoryCard = {
+  slug: string
+  name: string
+  count?: number
+  image?: string
 }
 
-export function CategorySection() {
+export function CategorySection({ categories }: { categories: CategoryCard[] }) {
+  if (!categories?.length) return null
   return (
     <section className="border-b border-border py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -43,28 +26,39 @@ export function CategorySection() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-          {mockCategories.map((category, index) => {
-            const Icon = iconMap[category.icon] || Monitor
+          {categories.slice(0, 10).map((category, index) => {
             return (
               <motion.div
-                key={category.id}
+                key={category.slug}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
                 <Link
                   href={`/search?category=${category.slug}`}
-                  className="group flex flex-col items-center rounded-xl border border-border bg-card p-6 transition-all hover:border-accent/50 hover:bg-secondary"
+                  className="group overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all hover:border-accent/50 hover:shadow-md"
                 >
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-secondary transition-colors group-hover:bg-accent/10">
-                    <Icon className="h-6 w-6 text-muted-foreground transition-colors group-hover:text-accent" />
+                  <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+                    {category.image ? (
+                      <ContentImage src={category.image} alt={category.name} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
+                    ) : (
+                      <div className="h-full w-full bg-gradient-to-br from-slate-200 to-slate-300" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    <span className="absolute bottom-3 left-3 text-sm font-semibold text-white">
+                      {category.name}
+                    </span>
                   </div>
-                  <span className="text-sm font-medium text-foreground">
-                    {category.name}
-                  </span>
-                  <span className="mt-1 text-xs text-muted-foreground">
-                    {category.count} items
-                  </span>
+                  {typeof category.count === 'number' ? (
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <span className="text-sm font-semibold text-foreground">{category.count} item{category.count === 1 ? '' : 's'}</span>
+                      <span className="text-sm font-semibold text-muted-foreground">Browse</span>
+                    </div>
+                  ) : (
+                    <div className="px-4 py-3">
+                      <span className="text-sm font-semibold text-foreground">Browse</span>
+                    </div>
+                  )}
                 </Link>
               </motion.div>
             )

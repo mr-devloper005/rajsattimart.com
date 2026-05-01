@@ -6,16 +6,16 @@ import { NavbarShell } from '@/components/shared/navbar-shell'
 import { Footer } from '@/components/shared/footer'
 import { SchemaJsonLd } from '@/components/seo/schema-jsonld'
 import { TaskPostCard } from '@/components/shared/task-post-card'
+import { CategoryCardsPopup } from '@/components/home/category-cards-popup'
 import { SITE_CONFIG, type TaskKey } from '@/lib/site-config'
 import { buildPageMetadata } from '@/lib/seo'
-import { fetchTaskPosts } from '@/lib/task-data'
+import { fetchTaskPosts, getPostTaskKey } from '@/lib/task-data'
 import { siteContent } from '@/config/site.content'
 import { getFactoryState } from '@/design/factory/get-factory-state'
 import { getProductKind, type ProductKind } from '@/design/factory/get-product-kind'
 import type { SitePost } from '@/lib/site-connector'
 import { HOME_PAGE_OVERRIDE_ENABLED, HomePageOverride } from '@/overrides/home-page'
-import { CATEGORY_OPTIONS } from '@/lib/categories'
-import { getCategoryCoverImage } from '@/lib/category-images'
+import { CATEGORY_OPTIONS, isValidCategory, normalizeCategory } from '@/lib/categories'
 import { cn } from '@/lib/utils'
 
 export const revalidate = 300
@@ -42,6 +42,10 @@ const taskIcons: Record<TaskKey, any> = {
   classified: Tag,
   image: ImageIcon,
   profile: User,
+  social: LayoutGrid,
+  comment: FileText,
+  pdf: FileText,
+  org: Building2,
 }
 
 function resolveTaskKey(value: unknown, fallback: TaskKey): TaskKey {
@@ -64,6 +68,14 @@ function getPostImage(post?: SitePost | null) {
     ? (post.content as any).logo
     : null
   return mediaUrl || contentImage || logo || '/placeholder.svg?height=900&width=1400'
+}
+
+function titleCaseFromSlug(value: string) {
+  return value
+    .split(/[-_\s]+/g)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
 }
 
 function getDirectoryTone(brandPack: string) {
@@ -142,10 +154,33 @@ function DirectoryHome({ primaryTask, listingPosts, classifiedPosts, brandPack }
   const featuredListings = (listingPosts.length ? listingPosts : classifiedPosts).slice(0, 4)
   const featuredTaskKey: TaskKey = listingPosts.length ? 'listing' : 'classified'
   const collage = (classifiedPosts.length ? classifiedPosts : listingPosts).slice(0, 6)
-  const popularCategories = CATEGORY_OPTIONS.slice(0, 8)
   const postAdHref = primaryTask ? `/create/${primaryTask.key}` : '/register'
   const goodFindsListings = featuredListings.slice(0, 4)
-  const goodFindsFallback = CATEGORY_OPTIONS.slice(0, 4)
+
+  const topCategories = (() => {
+    const combined = [...classifiedPosts, ...listingPosts]
+    const bySlug = new Map<string, { slug: string; name: string; count: number; heroPost: SitePost }>()
+
+    for (const post of combined) {
+      const content = post.content && typeof post.content === 'object' ? (post.content as any) : {}
+      const raw = typeof content.category === 'string' ? content.category : ''
+      if (!raw.trim()) continue
+      const slug = normalizeCategory(raw)
+      if (!isValidCategory(slug)) continue
+
+      const existing = bySlug.get(slug)
+      if (existing) {
+        existing.count += 1
+      } else {
+        const name = CATEGORY_OPTIONS.find((c) => c.slug === slug)?.name || titleCaseFromSlug(slug)
+        bySlug.set(slug, { slug, name, count: 1, heroPost: post })
+      }
+    }
+
+    return Array.from(bySlug.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8)
+  })()
 
   return (
     <main className="pb-16">
@@ -222,32 +257,43 @@ function DirectoryHome({ primaryTask, listingPosts, classifiedPosts, brandPack }
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <h2 className={`text-2xl font-bold tracking-tight ${tone.title}`}>Discover popular categories</h2>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {popularCategories.map((cat) => (
-            <Link
-              key={cat.slug}
-              href={`/classifieds?category=${encodeURIComponent(cat.slug)}`}
-              className={`group overflow-hidden rounded-2xl ${tone.soft}`}
-            >
-              <div className="relative aspect-[16/10] overflow-hidden bg-slate-200">
-                <ContentImage
-                  src={getCategoryCoverImage(cat.slug)}
-                  alt={cat.name}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-                <span className="absolute bottom-3 left-3 right-3 text-sm font-semibold text-white drop-shadow-md">
-                  {cat.name}
-                </span>
-              </div>
-              <div className="rounded-b-2xl border-t border-slate-100 bg-white px-4 py-3">
-                <span className={`text-sm font-semibold ${tone.title}`}>{cat.name}</span>
-              </div>
-            </Link>
-          ))}
+        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <h2 className={`text-2xl font-bold tracking-tight ${tone.title}`}>Featured listings</h2>
+            <p className={`mt-2 max-w-2xl text-sm ${tone.muted}`}>
+              Browse the latest listings and classifieds from our community.
+            </p>
+          </div>
+          <Link
+            href={primaryTask?.route || '/classifieds'}
+            className={`inline-flex shrink-0 items-center gap-2 text-sm font-semibold ${tone.title} hover:underline`}
+          >
+            View all
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {featuredListings.length > 0 ? (
+            featuredListings.map((post) => (
+              <TaskPostCard
+                key={post.id}
+                post={post}
+                href={getTaskHref(featuredTaskKey, post.slug)}
+                taskKey={featuredTaskKey}
+              />
+            ))
+          ) : (
+            <div className={`col-span-full rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center ${tone.soft}`}>
+              <p className={`text-sm ${tone.muted}`}>No listings yet. Be the first to post!</p>
+              <Link
+                href={postAdHref}
+                className={`mt-4 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold text-white ${tone.action}`}
+              >
+                <Plus className="h-4 w-4" />
+                Post an ad
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -267,33 +313,31 @@ function DirectoryHome({ primaryTask, listingPosts, classifiedPosts, brandPack }
           </div>
           <div className="grid gap-8 lg:grid-cols-[1fr_280px]">
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-2">
-              {goodFindsListings.length > 0
-                ? goodFindsListings.map((post) => (
-                    <TaskPostCard key={post.id} post={post} href={getTaskHref(featuredTaskKey, post.slug)} taskKey={featuredTaskKey} />
-                  ))
-                : goodFindsFallback.map((cat) => (
-                    <Link
-                      key={cat.slug}
-                      href={`/classifieds?category=${encodeURIComponent(cat.slug)}`}
-                      className={`group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:border-[#22c55e]/40 hover:shadow-md ${tone.soft}`}
-                    >
-                      <div className="relative aspect-[16/10] overflow-hidden bg-slate-200">
-                        <ContentImage
-                          src={getCategoryCoverImage(cat.slug)}
-                          alt={cat.name}
-                          fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          sizes="(max-width: 640px) 100vw, 50vw"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                        <span className="absolute bottom-3 left-3 text-sm font-semibold text-white">{cat.name}</span>
-                      </div>
-                      <div className="flex items-center justify-between px-4 py-3">
-                        <span className={`text-sm font-semibold ${tone.title}`}>Browse {cat.name}</span>
-                        <ArrowRight className="h-4 w-4 text-[#22c55e] transition group-hover:translate-x-0.5" />
-                      </div>
-                    </Link>
-                  ))}
+              {goodFindsListings.length > 0 ? (
+                goodFindsListings.map((post) => (
+                  <TaskPostCard key={post.id} post={post} href={getTaskHref(featuredTaskKey, post.slug)} taskKey={featuredTaskKey} />
+                ))
+              ) : topCategories.length > 0 ? (
+                <CategoryCardsPopup
+                  cards={topCategories.map((cat) => ({
+                    slug: cat.slug,
+                    name: cat.name,
+                    count: cat.count,
+                    image: getPostImage(cat.heroPost),
+                  }))}
+                />
+              ) : (
+                <div className={`col-span-full rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center ${tone.soft}`}>
+                  <p className={`text-sm ${tone.muted}`}>No listings yet. Once posts are added, categories will appear here automatically.</p>
+                  <Link
+                    href={postAdHref}
+                    className={`mt-4 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold text-white ${tone.action}`}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Post an ad
+                  </Link>
+                </div>
+              )}
             </div>
             <aside className={`hidden h-min rounded-xl border border-slate-200 bg-[#0066ff] p-6 text-white shadow-md lg:block`}>
               <p className="text-lg font-bold leading-snug">Sponsored</p>
@@ -445,7 +489,7 @@ function VisualHome({ primaryTask, imagePosts, profilePosts, articlePosts }: { p
             {gallery.slice(0, 5).map((post, index) => (
               <Link
                 key={post.id}
-                href={getTaskHref(resolveTaskKey(post.task, 'image'), post.slug)}
+                href={getTaskHref(resolveTaskKey(getPostTaskKey(post) || 'image', 'image'), post.slug)}
                 className={index === 0 ? `col-span-2 row-span-2 overflow-hidden rounded-[2.4rem] ${tone.panel}` : `overflow-hidden rounded-[1.8rem] ${tone.soft}`}
               >
                 <div className={index === 0 ? 'relative h-[360px]' : 'relative h-[170px]'}>
@@ -510,7 +554,7 @@ function CurationHome({ primaryTask, bookmarkPosts, profilePosts, articlePosts }
 
           <div className="grid gap-4 md:grid-cols-2">
             {collections.map((post) => (
-              <Link key={post.id} href={getTaskHref(resolveTaskKey(post.task, 'sbm'), post.slug)} className={`rounded-[1.8rem] p-6 ${tone.panel}`}>
+              <Link key={post.id} href={getTaskHref(resolveTaskKey(getPostTaskKey(post) || 'sbm', 'sbm'), post.slug)} className={`rounded-[1.8rem] p-6 ${tone.panel}`}>
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] opacity-70">Collection</p>
                 <h3 className="mt-3 text-2xl font-semibold">{post.title}</h3>
                 <p className={`mt-3 text-sm leading-8 ${tone.muted}`}>{post.summary || 'A calmer bookmark surface with room for context and grouping.'}</p>

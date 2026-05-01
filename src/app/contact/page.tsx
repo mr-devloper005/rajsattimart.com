@@ -34,6 +34,12 @@ export default async function ContactPage({
 
   const resolved = searchParams ? await searchParams : {}
   const isAdvertiseInquiry = resolved.topic === 'advertise'
+  const contactEmailRaw = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim()
+  const contactEmail = contactEmailRaw || `support@${SITE_CONFIG.domain}`
+  const contactMailto = `mailto:${contactEmail}`
+  const mailSubject = isAdvertiseInquiry
+    ? 'Advertising / sponsored placement'
+    : `Contact request - ${SITE_CONFIG.name}`
 
   return (
     <BrandPageFrame
@@ -78,7 +84,11 @@ export default async function ContactPage({
           </ul>
           <p className="flex items-center gap-2 text-sm text-[#64748b]">
             <Mail className="h-4 w-4 text-[#ea580c]" aria-hidden />
-            Prefer email? Use the form — it delivers straight to the same queue.
+            Prefer email? Reach us at{' '}
+            <a href={contactMailto} className="font-semibold text-[#0f172a] hover:underline">
+              {contactEmail}
+            </a>
+            .
           </p>
         </div>
 
@@ -116,6 +126,11 @@ export default async function ContactPage({
             <div className="flex flex-wrap gap-3">
               <Button type="submit" className="bg-[#ea580c] font-semibold text-white hover:bg-[#c2410c]">
                 Send message
+              </Button>
+              <Button variant="outline" className="border-slate-200" asChild>
+                <a href={`${contactMailto}?subject=${encodeURIComponent(mailSubject)}`}>
+                  Email us
+                </a>
               </Button>
               <Button variant="outline" className="border-slate-200" asChild>
                 <Link href="/help">Browse help centre</Link>
