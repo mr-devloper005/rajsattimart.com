@@ -4,7 +4,6 @@ import { NavbarShell } from "@/components/shared/navbar-shell";
 import { Footer } from "@/components/shared/footer";
 import { fetchSiteFeed } from "@/lib/site-connector";
 import { buildPostUrl, getPostTaskKey } from "@/lib/task-data";
-import { getMockPostsForTask } from "@/lib/mock-posts";
 import { SITE_CONFIG, type TaskKey } from "@/lib/site-config";
 import { TaskPostCard } from "@/components/shared/task-post-card";
 import { CATEGORY_OPTIONS } from "@/lib/categories";
@@ -65,9 +64,7 @@ export default async function SearchPage({
   const posts =
     feed?.posts?.length
       ? feed.posts
-      : useMaster
-        ? []
-        : SITE_CONFIG.tasks.flatMap((task) => getMockPostsForTask(task.key));
+      : [];
 
   const filtered = posts.filter((post) => {
     const content = post.content && typeof post.content === "object" ? post.content : {};
@@ -111,7 +108,7 @@ export default async function SearchPage({
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-[#64748b]">
               {query
-                ? `Results for “${query}”${locationQuery ? ` near ${resolved.location?.trim()}` : ""}.`
+                ? `Results for "${query}"${locationQuery ? ` near ${resolved.location?.trim()}` : ""}.`
                 : "Search across local ads and listings. Add a location to narrow results."}
             </p>
 

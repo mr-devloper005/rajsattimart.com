@@ -45,7 +45,7 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
   }
 
   const taskConfig = getTaskConfig(task)
-  const posts = await fetchTaskPosts(task, 30)
+  const posts = await fetchTaskPosts(task, 30, { allowMockFallback: false })
   const normalizedCategory = category ? normalizeCategory(category) : 'all'
   const taskRoute = taskConfig?.route || '/classifieds'
   const activeCategoryLabel =
@@ -316,7 +316,7 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
           </section>
         ) : null}
 
-        <TaskListClient task={task} initialPosts={posts} category={normalizedCategory} />
+        <TaskListClient task={task} initialPosts={posts} category={normalizedCategory} includeLocal={false} />
       </main>
       <Footer />
     </div>

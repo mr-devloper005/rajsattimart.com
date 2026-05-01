@@ -38,6 +38,36 @@ const FEED_REVALIDATE_SECONDS = (() => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 300;
 })();
 
+// The public connector can be hosted on slower infrastructure; a small retry helps
+// smooth over transient timeouts/cold starts without changing any API behavior.
+const PUBLIC_CONNECTOR_TIMEOUT_MS = 90_000;
+const PUBLIC_CONNECTOR_MAX_ATTEMPTS = 2;
+
+function isRetryableConnectorError(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const anyErr = error as { code?: unknown; name?: unknown; message?: unknown; cause?: unknown };
+  const code = typeof anyErr.code === "string" ? anyErr.code : "";
+  const name = typeof anyErr.name === "string" ? anyErr.name : "";
+  const message = typeof anyErr.message === "string" ? anyErr.message : "";
+  const cause = anyErr.cause as { code?: unknown; name?: unknown; message?: unknown } | undefined;
+  const causeCode = typeof cause?.code === "string" ? cause.code : "";
+  const causeName = typeof cause?.name === "string" ? cause.name : "";
+  const causeMessage = typeof cause?.message === "string" ? cause.message : "";
+
+  return (
+    code === "UND_ERR_HEADERS_TIMEOUT" ||
+    causeCode === "UND_ERR_HEADERS_TIMEOUT" ||
+    name === "HeadersTimeoutError" ||
+    causeName === "HeadersTimeoutError" ||
+    message.toLowerCase().includes("headers timeout") ||
+    causeMessage.toLowerCase().includes("headers timeout")
+  );
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 const getPublicUrl = (path: string) => {
   if (!API_BASE || !SITE_CODE) return null;
   return `${API_BASE.replace(/\/$/, "")}/api/v1/public/${SITE_CODE}${path}`;
@@ -47,28 +77,43 @@ async function fetchPublicJson<T>(path: string, options?: { fresh?: boolean }): 
   const target = getPublicUrl(path);
   if (!target) return null;
 
-  try {
-    const response = await fetch(target, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-      ...(options?.fresh ? { cache: "no-store" } : { next: { revalidate: FEED_REVALIDATE_SECONDS } }),
-    });
+  let lastError: unknown = null;
 
-    if (!response.ok) {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn(`Public connector request failed (${response.status}) for ${target}`);
+  for (let attempt = 1; attempt <= PUBLIC_CONNECTOR_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      const signal =
+        typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function"
+          ? AbortSignal.timeout(PUBLIC_CONNECTOR_TIMEOUT_MS)
+          : undefined;
+
+      const response = await fetch(target, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        ...(signal ? { signal } : {}),
+        ...(options?.fresh ? { cache: "no-store" } : { next: { revalidate: FEED_REVALIDATE_SECONDS } }),
+      });
+
+      if (!response.ok) {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(`Public connector request failed (${response.status}) for ${target}`);
+        }
+        return null;
       }
-      return null;
-    }
 
-    const json = (await response.json()) as { success: boolean; data?: T };
-    return json.data || null;
-  } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("Public connector request failed", error);
+      const json = (await response.json()) as { success: boolean; data?: T };
+      return json.data || null;
+    } catch (error) {
+      lastError = error;
+      const shouldRetry = attempt < PUBLIC_CONNECTOR_MAX_ATTEMPTS && isRetryableConnectorError(error);
+      if (!shouldRetry) break;
+      await sleep(250 * attempt);
     }
-    return null;
   }
+
+  if (process.env.NODE_ENV !== "production") {
+    console.warn("Public connector request failed", lastError);
+  }
+  return null;
 }
 
 export async function fetchSiteBootstrap(options?: { fresh?: boolean }): Promise<SiteBootstrap | null> {

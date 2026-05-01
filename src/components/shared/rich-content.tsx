@@ -1,5 +1,15 @@
 import { cn } from "@/lib/utils";
 
+const unescapeHtml = (value: string) =>
+  value
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, "\"")
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, "/");
+
 const escapeHtml = (value: string) =>
   value
     .replace(/&/g, "&amp;")
@@ -20,11 +30,15 @@ const sanitizeRichHtml = (html: string) =>
 export const formatRichHtml = (raw?: string | null, fallback = "Details coming soon.") => {
   const source = typeof raw === "string" ? raw.trim() : "";
   if (!source) return `<p>${escapeHtml(fallback)}</p>`;
-  if (/<[a-z][\s\S]*>/i.test(source)) {
-    return sanitizeRichHtml(source);
+
+  // Unescape first in case content is already escaped from database
+  const unescaped = unescapeHtml(source);
+
+  if (/<[a-z][\s\S]*>/i.test(unescaped)) {
+    return sanitizeRichHtml(unescaped);
   }
 
-  return source
+  return unescaped
     .split(/\n{2,}/)
     .map((paragraph) => `<p>${escapeHtml(paragraph.replace(/\n/g, " ").trim())}</p>`)
     .join("");
