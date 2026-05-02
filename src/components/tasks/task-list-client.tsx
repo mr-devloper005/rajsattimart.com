@@ -12,10 +12,11 @@ type Props = {
   task: TaskKey;
   initialPosts: SitePost[];
   category?: string;
+  includeLocal?: boolean;
 };
 
-export function TaskListClient({ task, initialPosts, category }: Props) {
-  const localPosts = getLocalPostsForTask(task);
+export function TaskListClient({ task, initialPosts, category, includeLocal = true }: Props) {
+  const localPosts = includeLocal ? getLocalPostsForTask(task) : [];
 
   const merged = useMemo(() => {
     const bySlug = new Set<string>();
