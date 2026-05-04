@@ -1,5 +1,5 @@
 export const siteIdentity = {
-  code: process.env.NEXT_PUBLIC_SITE_CODE || 'rajsattimart',
+  code: process.env.NEXT_PUBLIC_SITE_CODE || 'rs8x2q7m4v',
   name: process.env.NEXT_PUBLIC_SITE_NAME || 'Raj Satti Mart',
   tagline: process.env.NEXT_PUBLIC_SITE_TAGLINE || 'Business listing platform',
   description:
