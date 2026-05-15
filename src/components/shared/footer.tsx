@@ -28,8 +28,6 @@ const footerLinks = {
     { name: 'About', href: '/about' },
     { name: 'Team', href: '/team' },
     { name: 'Careers', href: '/careers' },
-    { name: 'Blog', href: '/blog' },
-    { name: 'Press', href: '/press' },
   ],
   resources: [
     { name: 'Help Center', href: '/help' },
@@ -61,23 +59,8 @@ export function Footer() {
   const primaryTask = enabledTasks.find((task) => task.key === recipe.primaryTask) || enabledTasks[0]
 
   if (recipe.footer === 'minimal-footer') {
-    const topLocations = ['North', 'South', 'East', 'West', 'Central', 'Metro', 'Suburbs', 'Downtown']
     return (
       <footer className="text-[#f8fafc]">
-        <div className="bg-[#f5f0e8] py-8 text-center">
-          <p className="text-lg font-bold text-[#1e293b]">Top Locations</p>
-          <div className="mx-auto mt-6 flex max-w-4xl flex-wrap items-center justify-center gap-x-2 gap-y-2 px-4 text-sm">
-            {topLocations.map((loc, i) => (
-              <span key={loc} className="inline-flex items-center gap-2">
-                {i > 0 ? <span className="text-[#cbd5e1]">|</span> : null}
-                <Link href="/search" className="text-[#0d9488] hover:underline">
-                  {loc}
-                </Link>
-              </span>
-            ))}
-          </div>
-        </div>
-
         <div className="bg-[#3d3443] py-12">
           <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-3 lg:px-8">
             <div>
@@ -85,8 +68,6 @@ export function Footer() {
               <ul className="mt-4 space-y-2.5 text-sm text-white/90">
                 <li><Link href="/about" className="hover:underline">About {SITE_CONFIG.name}</Link></li>
                 <li><Link href="/careers" className="hover:underline">Careers</Link></li>
-                <li><Link href="/press" className="hover:underline">Press</Link></li>
-                <li><Link href="/blog" className="hover:underline">Blog</Link></li>
               </ul>
             </div>
             <div>
@@ -108,23 +89,6 @@ export function Footer() {
                 ))}
               </ul>
             </div>
-          </div>
-        </div>
-
-        <div className="border-y border-white/10 bg-[#3d3443] py-8">
-          <p className="text-center text-sm font-semibold text-white">Join {SITE_CONFIG.name} community</p>
-          <div className="mx-auto mt-5 flex max-w-md flex-wrap justify-center gap-3">
-            {socialLinks.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
-              >
-                <item.icon className="h-4 w-4" />
-              </Link>
-            ))}
           </div>
         </div>
 
