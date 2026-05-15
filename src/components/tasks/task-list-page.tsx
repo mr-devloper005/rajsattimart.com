@@ -217,7 +217,7 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
             <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white via-slate-50/80 to-[#fff7ed]/40 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] sm:p-8">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#ea580c]">{taskConfig?.label || task}</p>
               <h1 className="mt-3 text-3xl font-bold tracking-tight text-[#0f172a] sm:text-4xl">
-                {taskConfig?.description || 'Browse classifieds'}
+                {taskConfig?.description || 'Latest posts'}
               </h1>
               <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-[#64748b]">
                 Shop more · Pay less · Live better

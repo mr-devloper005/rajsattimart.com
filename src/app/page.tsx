@@ -353,31 +353,6 @@ function DirectoryHome({ primaryTask, listingPosts, classifiedPosts, brandPack }
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-4 sm:px-6 lg:px-8">
-        <div className={`flex flex-col items-center gap-6 rounded-xl border border-slate-200 bg-white p-8 shadow-md md:flex-row md:justify-between lg:p-10`}>
-          <div className="max-w-xl">
-            <h2 className={`text-2xl font-bold ${tone.title}`}>Ready to sell something?</h2>
-            <p className={`mt-2 text-sm ${tone.muted}`}>Reach buyers on {SITE_CONFIG.name} in three steps.</p>
-            <div className="mt-6 flex flex-wrap gap-6 text-sm font-semibold text-[#334155]">
-              {['1 Free', '2 Quick', '3 Easy'].map((s) => (
-                <span key={s} className="inline-flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-bold">{s[0]}</span>
-                  {s.slice(2)}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="flex w-full max-w-md flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex h-12 flex-1 items-center gap-2 rounded-md border-2 border-[#facc15] bg-[#fef9c3] px-3 text-sm text-[#0f172a]">
-              <span className="rounded border border-slate-300 bg-white px-1.5 py-0.5 text-[10px] font-bold">Ad</span>
-              <span className="text-slate-500">Describe your item…</span>
-            </div>
-            <Link href={postAdHref} className={`inline-flex h-12 shrink-0 items-center justify-center rounded-md px-8 text-sm font-bold text-white ${tone.action}`}>
-              Post now
-            </Link>
-          </div>
-        </div>
-      </section>
     </main>
   )
 }

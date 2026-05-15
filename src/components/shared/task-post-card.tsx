@@ -124,13 +124,21 @@ export function TaskPostCard({
       price: 'text-[#16a34a]',
     }
     const rawPrice = content.price
+    const parsedStringPrice =
+      typeof rawPrice === 'string'
+        ? Number(rawPrice.replace(/[$,\s]/g, ''))
+        : NaN
     const priceLabel =
       typeof rawPrice === 'number' && Number.isFinite(rawPrice)
-        ? `$${rawPrice.toLocaleString()}`
+        ? rawPrice > 0
+          ? `$${rawPrice.toLocaleString()}`
+          : null
         : typeof rawPrice === 'string' && rawPrice.trim()
-          ? rawPrice.trim().startsWith('$')
-            ? rawPrice.trim()
-            : `$${rawPrice.trim()}`
+          ? Number.isFinite(parsedStringPrice) && parsedStringPrice <= 0
+            ? null
+            : rawPrice.trim().startsWith('$')
+              ? rawPrice.trim()
+              : `$${rawPrice.trim()}`
           : null
     const dateRef = post.publishedAt || post.updatedAt || post.createdAt
     const timeAgo =
