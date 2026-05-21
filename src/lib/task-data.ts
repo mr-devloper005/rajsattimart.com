@@ -1,5 +1,5 @@
 import { SITE_CONFIG, type TaskKey } from "./site-config";
-import { fetchSiteFeed, type SiteFeed, type SitePost } from "./site-connector";
+import { fetchSiteFeed, fetchSitePostBySlug, type SiteFeed, type SitePost } from "./site-connector";
 import { getMockPostsForTask } from "./mock-posts";
 import { isValidCategory } from "./categories";
 
